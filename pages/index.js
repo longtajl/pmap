@@ -1,4 +1,4 @@
-import Layout from "./comps/MyLayout";
+import Layout from "../comps/MyLayout";
 
 export default function Index() {
     return (
