@@ -1,5 +1,6 @@
 import Layout from "../comps/MyLayout";
 import fetch from "isomorphic-unfetch"
+import  useSWR from 'swr';
 import * as d3 from "d3";
 
 const width = 800, height = 600, scale = 1300;
@@ -33,9 +34,15 @@ class Map extends React.Component {
             .enter()
             .append("path")
             .attr("d", path)
+            .attr("class", (d) => {
+                console.log(d);
+                return "";
+            })
             .style("stroke", "#fff")
             .style("stroke-width", 0.1)
-            .style("fill", "#A2D29E");
+            .style("fill", function (d) {
+                return "#000"
+            });
 
         // ドラックイベント
         const dragEvent = d3.drag().on('drag', function () {
@@ -52,10 +59,15 @@ class Map extends React.Component {
             map.attr('d',path)
         });
         svg.call(zoomEvent);
+
+        // ズームリセット ボタン
+        d3.select("#ResetButton").on('click', () => {
+            svg.transition().duration(750)
+                .call(zoomEvent.transform, d3.zoomIdentity);
+        });
     }
 
     componentDidMount() {
-        console.log("componentDidMount");
         this.renderMap();
     }
 
@@ -66,8 +78,9 @@ class Map extends React.Component {
                 <svg width={width}
                      height={height}
                      ref="svg"
-                     style={{background: 'rgba(124, 224, 249, .3)'}}>
+                     style={{background: 'white'}}>
                 </svg>
+                <button id="ResetButton">Reset</button>
                 <style>{`
                 `}
                 </style>
