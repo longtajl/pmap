@@ -1,6 +1,5 @@
 import Layout from "../comps/MyLayout";
 import fetch from "isomorphic-unfetch"
-import useSWR from 'swr';
 import * as d3 from "d3";
 
 const width = 1200, height = 700, scale = 1300;
