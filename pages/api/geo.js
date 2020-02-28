@@ -1,6 +1,6 @@
-import jpgeo from '../../data/japan_geo';
+import worldgeo from '../../data/test.geo';
 
 export default (req, res) => {
-    let geoJson = jpgeo;
+    let geoJson = worldgeo;
     res.status(200).json(geoJson);
 }

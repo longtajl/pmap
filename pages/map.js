@@ -3,14 +3,13 @@ import fetch from "isomorphic-unfetch"
 import useSWR from 'swr';
 import * as d3 from "d3";
 
-const width = 1200, height = 700, scale = 1400;
-
-// https://qiita.com/sand/items/422d4fab77ea8f69dfdf
+const width = 1200, height = 700, scale = 1300;
 
 class Map extends React.Component {
 
     static async getInitialProps({req}) {
         const geojson = await fetch("http://localhost:3000/api/geo").then(r => r.json());
+        //const jpgeoJson = await fetch("http://localhost:3000/api/jpgeo").then(r => r.json());
         const preferences = await fetch("http://localhost:3000/api/prefectures").then(r => r.json());
         return { geojson, preferences }
     }
@@ -18,6 +17,7 @@ class Map extends React.Component {
     renderMap() {
         // map情報
         const geoJson = this.props.geojson;
+        const jpgeoJson = this.props.jpgeoJson;
 
         // メルカトル図法
         const projection = d3.geoMercator()
@@ -56,10 +56,28 @@ class Map extends React.Component {
             })
             .attr("r", (d, i) => {
                 const preference = this.props.preferences[i];
-                return preference.count + "px";
+                const count = preference.count;
+                if (count === 0) {
+                    return "0px"
+                }
+                return "30px";
             })
-            .attr("fill", (d) => {
-                return "red";
+            .attr("fill", (d, i) => {
+                const c = d3.color("red");
+
+                const preference = this.props.preferences[i];
+                const count = preference.count;
+                if (count <= 5) {
+                    c.opacity = 0.2;
+                } else if (count <= 10) {
+                    c.opacity = 0.25;
+                } else if (count <= 20) {
+                    c.opacity = 0.333;
+                } else {
+                    c.opacity = 0.47;
+                }
+
+                return c;
             });
 
         // ズームイベント
@@ -93,6 +111,9 @@ class Map extends React.Component {
                     <div className="RightArea">
                         <button id="ResetButton">Reset</button>
                     </div>
+                    <div className="HeaderArea">
+                        <p>total: 0</p>
+                    </div>
                 </div>
                 <style>{`
                 .MapContainer {
@@ -105,6 +126,11 @@ class Map extends React.Component {
                   position: absolute;
                   right: 30px;
                   bottom: 30px;
+                }
+                .HeaderArea {
+                  position: absolute;
+                  top: 30px;
+                  left: 30px;
                 }
                 `}
                 </style>
