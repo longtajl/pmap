@@ -1,4 +1,4 @@
-import jpgeo from '../../japan_geo';
+import jpgeo from '../../data/japan_geo';
 
 export default (req, res) => {
     let geoJson = jpgeo;
