@@ -7,9 +7,14 @@ const width = 1200, height = 700, scale = 1300;
 class Map extends React.Component {
 
     static async getInitialProps({req}) {
-        const geojson = await fetch("http://localhost:3000/api/geo").then(r => r.json());
-        //const jpgeoJson = await fetch("http://localhost:3000/api/jpgeo").then(r => r.json());
-        const preferences = await fetch("http://localhost:3000/api/prefectures").then(r => r.json());
+        let host;
+        if(window.location.host.includes("localhost")) {
+            host = "http://localhost:3000/"
+        } else {
+            host = "https://pmap.now.sh/"
+        }
+        const geojson = await fetch(host + "api/jpgeo").then(r => r.json());
+        const preferences = await fetch(host + "api/prefectures").then(r => r.json());
         return { geojson, preferences }
     }
 
