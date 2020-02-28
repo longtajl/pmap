@@ -13,7 +13,7 @@ class Map extends React.Component {
         } else {
             host = "https://pmap.now.sh/"
         }
-        const geojson = await fetch(host + "api/jpgeo").then(r => r.json());
+        const geojson = await fetch(host + "api/geo").then(r => r.json());
         const preferences = await fetch(host + "api/prefectures").then(r => r.json());
         return { geojson, preferences }
     }
