@@ -44,24 +44,29 @@ class Map extends React.Component {
             .translate([width / 2, height / 2])
             .scale(scale);
 
-        const path = d3.geoPath().projection(projection);
-
         // svg取得
         const svg = d3.select("svg");
+
+        // Path
+        const path = d3.geoPath().projection(projection);
 
         // map描写
         const map = svg.selectAll("path").data(features)
             .enter()
             .append("path")
             .attr("d", path)
-            .attr("class", (d) => {
-                return "";
-            })
             .style("stroke", "#424949")
             .style("stroke-width", 0.1)
             .style("fill", function (d) {
                 return "#808080"
             });
+
+        // ズームイベント
+        const zoomEvent = d3.zoom().on("zoom", () => {
+            map.attr("transform", d3.event.transform);
+            circles.attr("transform", d3.event.transform);
+        });
+        svg.call(zoomEvent);
 
         // Circles
         const laloList = this.props.preferences.map(p => [p.lon, p.lat]);
@@ -84,9 +89,8 @@ class Map extends React.Component {
                 return size + "px";
             })
             .attr("fill", (d, i) => {
-                const c = d3.color("#C90000");
-
                 const preference = this.props.preferences[i];
+                const c = d3.color("#C90000");
                 const count = preference.count;
                 if (count <= 5) {
                     c.opacity = 0.2;
@@ -110,6 +114,7 @@ class Map extends React.Component {
                 const pref = this.props.preferences[i];
                 const node = svg.selectAll("g").data([i]).enter().append("g")
                     .attr("transform", "translate(" + x + "," + y + ")");
+
                 node.append("rect")
                     .attr("width", labelWidth)
                     .attr("height", labelHeight)
@@ -120,17 +125,9 @@ class Map extends React.Component {
                     .attr("x", 10)
                     .attr("fill", "#000")
                     .text(pref["name-ja"] + "\n" + pref.count + "人");
+
+                console.log(d3.zoomIdentity);
             });
-
-        // ズームイベント
-        const zoomEvent = d3.zoom().on("zoom", () => {
-            map.attr("transform", d3.event.transform);
-            circles.attr("transform", d3.event.transform);
-
-            const node = svg.selectAll("g");
-            node.attr("transform", d3.event.transform)
-        });
-        svg.call(zoomEvent);
 
         //const b = mercatorBounds(projection, maxlat),
         //    s = width/(b[1][0]-b[0][0]),
@@ -157,7 +154,7 @@ class Map extends React.Component {
         const reducer = (accumulator, currentValue) => accumulator + currentValue;
         const totalCount = this.props.preferences.map(r => r.count).reduce(reducer);
         return (
-            <Layout>
+            <div>
                 <div className="MapContainer">
                     <svg width={width}
                          height={height}
@@ -190,7 +187,7 @@ class Map extends React.Component {
                 }
                 `}
                 </style>
-            </Layout>
+            </div>
         )
     }
 }
