@@ -1,19 +1,19 @@
 import Layout from "../comps/MyLayout";
-import fetch from "isomorphic-unfetch"
+import fetch from "isomorphic-unfetch";
 import * as topojson from "topojson-client";
 import * as d3 from "d3";
 
-const width = 800, height = 700, scale = 1000, maxlat = 83;
+const width = 1200, height = 700, scale = 400;
 
 class Map extends React.Component {
 
     static async getInitialProps({req}) {
-        //let host = "https://pmap.now.sh/";
+        console.log(req);
         let host = "http://localhost:3000/";
         //if(window.location.host.includes("localhost")) {
-        //    host = "http://localhost:3000/"
+        // host = "http://localhost:3000/"
         //} else {
-        //    host = "https://pmap.now.sh/"
+        // host = "https://pmap.now.sh/"
         //}
         //const geojson = await fetch(host + "api/jpgeo").then(r => r.json());
         const topo = await fetch(host + "land-50m.json").then(r => r.json());
@@ -21,15 +21,14 @@ class Map extends React.Component {
         return { topo, preferences }
     }
 
+     mercatorBounds(projection, maxlat) {
+        const yaw = projection.rotate()[0],
+            xymax = projection([-yaw+180-1e-6,-maxlat]),
+            xymin = projection([-yaw-180+1e-6, maxlat]);
+        return [xymin,xymax];
+    }
+
     renderMap() {
-
-        function mercatorBounds(projection, maxlat) {
-            const yaw = projection.rotate()[0],
-                xymax = projection([-yaw+180-1e-6,-maxlat]),
-                xymin = projection([-yaw-180+1e-6, maxlat]);
-            return [xymin,xymax];
-        }
-
         // map情報
         const world = this.props.topo;
         const features = topojson.feature(world, world.objects.land).features;
@@ -75,7 +74,7 @@ class Map extends React.Component {
                 if (count === 0) {
                     return "0px"
                 }
-                return "24px";
+                return "30px";
             })
             .attr("fill", (d, i) => {
                 const c = d3.color("red");
@@ -97,8 +96,8 @@ class Map extends React.Component {
 
         // ズームイベント
         const zoomEvent = d3.zoom().on("zoom", () => {
-            map.attr("transform", d3.event.transform);
-            circles.attr("transform", d3.event.transform)
+         map.attr("transform", d3.event.transform);
+         circles.attr("transform", d3.event.transform)
         });
         svg.call(zoomEvent);
 
@@ -106,14 +105,15 @@ class Map extends React.Component {
         //    s = width/(b[1][0]-b[0][0]),
         //    scaleExtent = [s, 10*s];
 
-        //const zoom = d3.zoom()
+        //const zoom = d3.zoom
         //    .scaleExtent(scaleExtent)
-        //    //.scale(projection.scale())
-        //    //.translate([0,0])
+        //    .scale(projection.scale())
+        //    .translate([0,0]) // not linked directly to projection
         //    .on("zoom", redraw);
 
         // ズームリセット ボタン
         d3.select("#ResetButton").on('click', () => {
+            console.log(d3.zoomIdentity);
             svg.transition().duration(750)
                 .call(zoomEvent.transform, d3.zoomIdentity);
         });
@@ -125,7 +125,7 @@ class Map extends React.Component {
 
     render() {
         return (
-            <div className="Main">
+            <Layout>
                 <div className="MapContainer">
                     <svg width={width}
                          height={height}
@@ -140,12 +140,10 @@ class Map extends React.Component {
                     </div>
                 </div>
                 <style>{`
-                .Main {
-                }
                 .MapContainer {
                   position: relative;
                   background-color: #424949;
-                  width: 800px;
+                  width: 1200px;
                   height: 700px;
                 }
                 .RightArea {
@@ -160,7 +158,7 @@ class Map extends React.Component {
                 }
                 `}
                 </style>
-            </div>
+            </Layout>
         )
     }
 }
