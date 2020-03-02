@@ -9,28 +9,28 @@ const circlesSize = 20;
 const defaultScale = 1200;
 
 // ラベル
-const labelWidth = 80;
-const labelHeight = 30;
+const labelWidth = 120;
+const labelHeight = 40;
 
 class Map extends React.Component {
 
     static async getInitialProps({req}) {
         let host;
-        if(process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === 'production') {
             host = "https://pmap.now.sh/"
         } else {
             host = "http://localhost:3000/"
         }
         const topo = await fetch(host + "land-50m.json").then(r => r.json());
         const preferences = await fetch(host + "api/prefectures").then(r => r.json());
-        return { topo, preferences }
+        return {topo, preferences}
     }
 
-     mercatorBounds(projection, maxlat) {
+    mercatorBounds(projection, maxlat) {
         const yaw = projection.rotate()[0],
-            xymax = projection([-yaw+180-1e-6,-maxlat]),
-            xymin = projection([-yaw-180+1e-6, maxlat]);
-        return [xymin,xymax];
+            xymax = projection([-yaw + 180 - 1e-6, -maxlat]),
+            xymin = projection([-yaw - 180 + 1e-6, maxlat]);
+        return [xymin, xymax];
     }
 
     renderMap() {
@@ -63,20 +63,6 @@ class Map extends React.Component {
                 return "#808080"
             });
 
-        // rect
-        const dataset = [0];
-        const node = svg.selectAll(".node")
-            .data(dataset)
-            .attr("class", "node")
-            .enter().append("g");
-        const labels = node.append("rect");
-        node.append("text")
-            .text(() => {
-                console.log("ssssssssssssss");
-                return "AAAAAAAAAAA";
-            })
-            .style("font-size", "20px");
-
         // Circles
         const laloList = this.props.preferences.map(p => [p.lon, p.lat]);
         const circles = svg.selectAll("circle").data(laloList).enter()
@@ -93,10 +79,8 @@ class Map extends React.Component {
                 if (count === 0) {
                     return "0px"
                 }
-
                 const dd = scale / defaultScale;
                 const size = circlesSize * dd;
-
                 return size + "px";
             })
             .attr("fill", (d, i) => {
@@ -117,25 +101,34 @@ class Map extends React.Component {
                 return c;
             })
             .on("mouseout", (d, i) => {
-                labels.data(dataset)
-                    .attr("width", 0)
-                    .attr("height",30)
+                svg.selectAll("g").data([]).exit().remove()
             })
             .on("mouseover", (d, i) => {
-                node.data(dataset)
-                    .attr("x", projection(d)[0] - labelWidth/2)
-                    .attr("y", projection(d)[1] - labelHeight*1.8);
+                const x = projection(d)[0] - labelWidth / 4;
+                const y = projection(d)[1] - labelHeight * 1.8;
 
-                labels.data(dataset)
+                const pref = this.props.preferences[i];
+                const node = svg.selectAll("g").data([i]).enter().append("g")
+                    .attr("transform", "translate(" + x + "," + y + ")");
+                node.append("rect")
                     .attr("width", labelWidth)
                     .attr("height", labelHeight)
-                    .attr("fill", "#A2A091");
+                    .attr("fill", "#DCDCDC");
+
+                node.append('text')
+                    .attr("y", 25)
+                    .attr("x", 10)
+                    .attr("fill", "#000")
+                    .text(pref["name-ja"] + "\n" + pref.count + "人");
             });
 
         // ズームイベント
         const zoomEvent = d3.zoom().on("zoom", () => {
-         map.attr("transform", d3.event.transform);
-         circles.attr("transform", d3.event.transform)
+            map.attr("transform", d3.event.transform);
+            circles.attr("transform", d3.event.transform);
+
+            const node = svg.selectAll("g");
+            node.attr("transform", d3.event.transform)
         });
         svg.call(zoomEvent);
 
