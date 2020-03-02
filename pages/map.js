@@ -3,12 +3,18 @@ import fetch from "isomorphic-unfetch";
 import * as topojson from "topojson-client";
 import * as d3 from "d3";
 
-const width = 1200, height = 700, scale = 400;
+const width = 1200, height = 700, scale = 1200;
+
+const circlesSize = 20;
+const defaultScale = 1200;
+
+// ラベル
+const labelWidth = 80;
+const labelHeight = 30;
 
 class Map extends React.Component {
 
     static async getInitialProps({req}) {
-        console.log(req);
         let host;
         if(process.env.NODE_ENV === 'production') {
             host = "https://pmap.now.sh/"
@@ -57,6 +63,20 @@ class Map extends React.Component {
                 return "#808080"
             });
 
+        // rect
+        const dataset = [0];
+        const node = svg.selectAll(".node")
+            .data(dataset)
+            .attr("class", "node")
+            .enter().append("g");
+        const labels = node.append("rect");
+        node.append("text")
+            .text(() => {
+                console.log("ssssssssssssss");
+                return "AAAAAAAAAAA";
+            })
+            .style("font-size", "20px");
+
         // Circles
         const laloList = this.props.preferences.map(p => [p.lon, p.lat]);
         const circles = svg.selectAll("circle").data(laloList).enter()
@@ -73,10 +93,14 @@ class Map extends React.Component {
                 if (count === 0) {
                     return "0px"
                 }
-                return "30px";
+
+                const dd = scale / defaultScale;
+                const size = circlesSize * dd;
+
+                return size + "px";
             })
             .attr("fill", (d, i) => {
-                const c = d3.color("red");
+                const c = d3.color("#C90000");
 
                 const preference = this.props.preferences[i];
                 const count = preference.count;
@@ -91,6 +115,21 @@ class Map extends React.Component {
                 }
 
                 return c;
+            })
+            .on("mouseout", (d, i) => {
+                labels.data(dataset)
+                    .attr("width", 0)
+                    .attr("height",30)
+            })
+            .on("mouseover", (d, i) => {
+                node.data(dataset)
+                    .attr("x", projection(d)[0] - labelWidth/2)
+                    .attr("y", projection(d)[1] - labelHeight*1.8);
+
+                labels.data(dataset)
+                    .attr("width", labelWidth)
+                    .attr("height", labelHeight)
+                    .attr("fill", "#A2A091");
             });
 
         // ズームイベント
@@ -112,7 +151,6 @@ class Map extends React.Component {
 
         // ズームリセット ボタン
         d3.select("#ResetButton").on('click', () => {
-            console.log(d3.zoomIdentity);
             svg.transition().duration(750)
                 .call(zoomEvent.transform, d3.zoomIdentity);
         });
@@ -123,19 +161,21 @@ class Map extends React.Component {
     }
 
     render() {
+        const reducer = (accumulator, currentValue) => accumulator + currentValue;
+        const totalCount = this.props.preferences.map(r => r.count).reduce(reducer);
         return (
             <Layout>
                 <div className="MapContainer">
                     <svg width={width}
                          height={height}
                          ref="svg"
-                         style={{background: '#424949'}}>
+                         style={{background: '#2A2A2A'}}>
                     </svg>
                     <div className="RightArea">
                         <button id="ResetButton">Reset</button>
                     </div>
                     <div className="HeaderArea">
-                        <p>total: 0</p>
+                        <p>Total: {totalCount}</p>
                     </div>
                 </div>
                 <style>{`
