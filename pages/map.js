@@ -9,13 +9,12 @@ class Map extends React.Component {
 
     static async getInitialProps({req}) {
         console.log(req);
-        let host = "http://localhost:3000/";
-        //if(window.location.host.includes("localhost")) {
-        // host = "http://localhost:3000/"
-        //} else {
-        // host = "https://pmap.now.sh/"
-        //}
-        //const geojson = await fetch(host + "api/jpgeo").then(r => r.json());
+        let host;
+        if(process.env.NODE_ENV === 'production') {
+            host = "https://pmap.now.sh/"
+        } else {
+            host = "http://localhost:3000/"
+        }
         const topo = await fetch(host + "land-50m.json").then(r => r.json());
         const preferences = await fetch(host + "api/prefectures").then(r => r.json());
         return { topo, preferences }
