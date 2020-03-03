@@ -10,9 +10,19 @@ const defaultScale = 1200;
 
 // ラベル
 const labelWidth = 120;
-const labelHeight = 40;
+const labelHeight = 36;
+
+const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
 class Map extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            totalCount: props.preferences.map(r => r.count).reduce(reducer),
+            currentCountText: ""
+        };
+    }
 
     static async getInitialProps({req}) {
         let host;
@@ -105,39 +115,33 @@ class Map extends React.Component {
                 return c;
             })
             .on("mouseout", (d, i) => {
-                svg.selectAll("g").data([]).exit().remove()
+                //svg.selectAll("g").data([]).exit().remove()
+                this.setState({ currentCountText: ""})
             })
             .on("mouseover", (d, i) => {
-                const x = projection(d)[0] - labelWidth / 4;
-                const y = projection(d)[1] - labelHeight * 1.8;
+                console.log(this.state.totalCount);
+                const preference = this.props.preferences[i];
+                this.setState({ currentCountText: preference["name-ja"] +": "+ preference.count })
 
-                const pref = this.props.preferences[i];
-                const node = svg.selectAll("g").data([i]).enter().append("g")
-                    .attr("transform", "translate(" + x + "," + y + ")");
-
-                node.append("rect")
-                    .attr("width", labelWidth)
-                    .attr("height", labelHeight)
-                    .attr("fill", "#DCDCDC");
-
-                node.append('text')
-                    .attr("y", 25)
-                    .attr("x", 10)
-                    .attr("fill", "#000")
-                    .text(pref["name-ja"] + "\n" + pref.count + "人");
-
-                console.log(d3.zoomIdentity);
+                // const transform = d3.zoomTransform(svg.node());
+                // const x = (projection(d)[0] * transform.k) + transform.x;
+                // const y = (projection(d)[1] * transform.k) + transform.y;
+                //
+                // const pref = this.props.preferences[i];
+                // const node = svg.selectAll("g").data([i]).enter().append("g")
+                //     .attr("transform", "translate(" + x + "," + y + ")");
+                //
+                // node.append("rect")
+                //     .attr("width", labelWidth)
+                //     .attr("height", labelHeight)
+                //     .attr("fill", "#DCDCDC");
+                //
+                // node.append('text')
+                //     .attr("y", 25)
+                //     .attr("x", 10)
+                //     .attr("fill", "#000")
+                //     .text(pref["name-ja"] + "\n" + pref.count + "人");
             });
-
-        //const b = mercatorBounds(projection, maxlat),
-        //    s = width/(b[1][0]-b[0][0]),
-        //    scaleExtent = [s, 10*s];
-
-        //const zoom = d3.zoom
-        //    .scaleExtent(scaleExtent)
-        //    .scale(projection.scale())
-        //    .translate([0,0]) // not linked directly to projection
-        //    .on("zoom", redraw);
 
         // ズームリセット ボタン
         d3.select("#ResetButton").on('click', () => {
@@ -151,8 +155,6 @@ class Map extends React.Component {
     }
 
     render() {
-        const reducer = (accumulator, currentValue) => accumulator + currentValue;
-        const totalCount = this.props.preferences.map(r => r.count).reduce(reducer);
         return (
             <div>
                 <div className="MapContainer">
@@ -165,7 +167,8 @@ class Map extends React.Component {
                         <button id="ResetButton">Reset</button>
                     </div>
                     <div className="HeaderArea">
-                        <p>Total: {totalCount}</p>
+                        <p>Total: {this.state.totalCount}</p>
+                        <p>{this.state.currentCountText}</p>
                     </div>
                 </div>
                 <style>{`
