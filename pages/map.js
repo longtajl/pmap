@@ -1,10 +1,11 @@
 import fetch from "isomorphic-unfetch";
+import {useRouter} from 'next/router'
 import * as topojson from "topojson-client";
 import * as d3 from "d3";
 import prefectures from "../data/prefectures";
 import data from "../data/data";
 
-const width = 900, height = 700, scale = 1200;
+const width = 700, height = 700, scale = 1200;
 const circlesSize = 30;
 const defaultScale = 1200;
 
@@ -20,6 +21,7 @@ class Map extends React.Component {
         this.state = {
             currentIndex: lastIndex,
             currentData: currentData,
+            mouseOverPrefectureId: -1,
             totalCount: currentData.counts.reduce(reducer),
             currentCountText: ""
         };
@@ -128,12 +130,12 @@ class Map extends React.Component {
                 return c;
             })
             .on("mouseout", (d, i) => {
-                this.setState({currentCountText: ""})
+                this.setState({mouseOverPrefectureId: -1})
             })
             .on("mouseover", (d, i) => {
                 const preference = this.props.preferences[i];
                 const count = this.state.currentData.counts[i];
-                this.setState({currentCountText: preference["name-ja"] + ": " + count + "人"})
+                this.setState({mouseOverPrefectureId: preference.id})
             });
     }
 
@@ -159,6 +161,13 @@ class Map extends React.Component {
     }
 
     render() {
+
+        let preferencesCount = this.state.currentData.counts.map((data, i) => {
+            return [data, this.props.preferences[i]];
+        }).filter(d => d[0] > 0).sort((a, b) => {
+            return b[0] - a[0]
+        });
+
         return (
             <div>
                 <div className="MapContainer">
@@ -171,21 +180,37 @@ class Map extends React.Component {
                         <button id="ResetButton">Reset</button>
                     </div>
                     <div className="LeftArea">
+                        <div>
+                            {preferencesCount.map((data) => {
+                                let p = data[1], count = data[0];
+                                let color = this.state.mouseOverPrefectureId === p.id ? "red" : "white";
+                                return (
+                                    <div key={p.id} style={{"fontSize": "12px", "color": color}}>{p["name-ja"]} {count}人</div>
+                                )
+                            })}
+                        </div>
                     </div>
                     <div className="HeaderArea">
-                        <span style={{"font-size": "20px", "color": "white"}}>{this.state.currentData.day} 感染者数: {this.state.totalCount}人</span>
+                        <span style={{
+                            "fontSize": "20px",
+                            "color": "white"
+                        }}>{this.state.currentData.day} 感染者数: {this.state.totalCount}人</span>
                     </div>
                     <div className="FooterArea" ref={this.footer}>
                         <div className="DayNav">
                             {this.props.coronaDataList.map((data, i) => {
-                                let className = this.state.currentData.day === data.day ?  "DayAreaActive" : "DayArea";
+                                let className = this.state.currentData.day === data.day ? "DayAreaActive" : "DayArea";
                                 return (
                                     <div className={className} key={data.day}
                                          onClick={() => this.changeCurrentData(data, i)}
                                          onMouseEnter={(e) => {
                                              this.changeCurrentData(data);
                                          }}>
-                                        <div style={{"margin-left": "5px", "margin-right": "5px", "color": "white"}}>{data.day.replace("2020/","")}</div>
+                                        <div style={{
+                                            "margin-left": "5px",
+                                            "margin-right": "5px",
+                                            "color": "white"
+                                        }}>{data.day.replace("2020/", "")}</div>
                                     </div>
                                 )
                             })}
@@ -205,6 +230,11 @@ class Map extends React.Component {
                   right: 30px;
                   top: 30px;
                 }
+                .LeftArea {
+                  position: absolute;
+                  left: 10px;
+                  top: 40px;
+                }
                 .HeaderArea {
                   position: absolute;
                   top: 10px;
@@ -218,7 +248,7 @@ class Map extends React.Component {
                   white-space: nowrap;
                   overflow-x: auto;
                   -webkit-overflow-scrolling: touch;
-                }        
+                }
                 .DayNav {
                   width: ${width}px;
                   background-color: rgba(52,52,52,.A);
