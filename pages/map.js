@@ -16,7 +16,9 @@ class Map extends React.Component {
         super(props);
         const lastIndex = props.coronaDataList.length - 1;
         const currentData = props.coronaDataList[lastIndex];
+        this.footer = React.createRef();
         this.state = {
+            currentIndex: lastIndex,
             currentData: currentData,
             totalCount: currentData.counts.reduce(reducer),
             currentCountText: ""
@@ -135,8 +137,9 @@ class Map extends React.Component {
             });
     }
 
-    changeCurrentData(data) {
+    changeCurrentData(data, i) {
         this.setState({
+            currentIndex: i,
             currentData: data,
             totalCount: data.counts.reduce(reducer)
         }, () => {
@@ -146,11 +149,12 @@ class Map extends React.Component {
 
     onScroll(event) {
         let element = event.target;
-        console.log(element.scrollLeft)
     }
 
     componentDidMount() {
         this.renderMap();
+        //const scrollWidth = this.footer.current.clientWidth / this.props.coronaDataList.length;
+        //this.footer.current.scrollLeft = scrollWidth * 10;
     }
 
     render() {
@@ -169,13 +173,13 @@ class Map extends React.Component {
                         <span style={{"font-size": "20px", "color": "white"}}>{this.state.currentData.day} 感染者数: {this.state.totalCount}人</span>
                         {/*<span>{this.state.currentCountText}</span>*/}
                     </div>
-                    <div className="FooterArea">
-                        <div className="DayNav" onScroll={this.onScroll}>
-                            {this.props.coronaDataList.map((data) => {
+                    <div className="FooterArea" ref={this.footer}>
+                        <div className="DayNav">
+                            {this.props.coronaDataList.map((data, i) => {
                                 let className = this.state.currentData.day === data.day ?  "DayAreaActive" : "DayArea";
                                 return (
                                     <div className={className} key={data.day}
-                                         onClick={() => this.changeCurrentData(data)}
+                                         onClick={() => this.changeCurrentData(data, i)}
                                          onMouseEnter={(e) => {
                                              this.changeCurrentData(data);
                                          }}>
@@ -183,6 +187,7 @@ class Map extends React.Component {
                                     </div>
                                 )
                             })}
+                            <div className="DayBlank"/>
                         </div>
                     </div>
                 </div>
@@ -208,14 +213,16 @@ class Map extends React.Component {
                   bottom: 0px;
                   left: 0px;
                   width: ${width}px;
-                }
+                  white-space: nowrap;
+                  overflow-x: auto;
+                  -webkit-overflow-scrolling: touch;
+                }        
                 .DayNav {
                   width: ${width}px;
                   background-color: rgba(52,52,52,.A);
                   display: flex;
-                  overflow: scroll;
                 }
-                .DayNav::-webkit-scrollbar {
+                .FooterArea::-webkit-scrollbar {
                   display: none;
                 }
                 .DayArea {
@@ -223,13 +230,16 @@ class Map extends React.Component {
                   background-color: rgba(51,51,51,.8);
                   margin-left: 1px;
                   margin-right: 1px;
+                  flex-basis: 120px;
+                  flex-shrink: 1;
                 }
                 .DayBlank {
                   line-height: 50px;
-                  width: 200px;
                   background-color: rgba(51,51,51,.8);
+                  flex-shrink: 2;
                 }
                 .DayAreaActive {
+                  flex-basis: 120px;
                   flex-shrink: 1;
                   line-height: 50px;
                   background-color: #BBB;
