@@ -1,4 +1,4 @@
-[
+exports.list = [
   {
     "id": 1,
     "name-ja": "北海道",
