@@ -2,6 +2,7 @@ import Layout from "../comps/MyLayout";
 import fetch from "isomorphic-unfetch";
 import * as topojson from "topojson-client";
 import * as d3 from "d3";
+import data from "../data/data";
 
 const width = 1200, height = 700, scale = 1200;
 
@@ -18,6 +19,7 @@ class Map extends React.Component {
 
     constructor(props) {
         super(props);
+        console.log(data.coronaMapData);
         this.state = {
             totalCount: props.preferences.map(r => r.count).reduce(reducer),
             currentCountText: ""
@@ -119,7 +121,6 @@ class Map extends React.Component {
                 this.setState({ currentCountText: ""})
             })
             .on("mouseover", (d, i) => {
-                console.log(this.state.totalCount);
                 const preference = this.props.preferences[i];
                 this.setState({ currentCountText: preference["name-ja"] +": "+ preference.count })
 
