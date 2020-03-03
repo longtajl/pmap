@@ -144,6 +144,11 @@ class Map extends React.Component {
         });
     }
 
+    onScroll(event) {
+        let element = event.target;
+        console.log(element.scrollLeft)
+    }
+
     componentDidMount() {
         this.renderMap();
     }
@@ -161,17 +166,20 @@ class Map extends React.Component {
                         <button id="ResetButton">Reset</button>
                     </div>
                     <div className="HeaderArea">
-                        <p>{this.state.currentData.day} 感染者数: {this.state.totalCount}人 {this.state.currentCountText}</p>
+                        <span style={{"font-size": "20px", "color": "white"}}>{this.state.currentData.day} 感染者数: {this.state.totalCount}人</span>
+                        {/*<span>{this.state.currentCountText}</span>*/}
                     </div>
                     <div className="FooterArea">
-                        <div className="DayNav">
+                        <div className="DayNav" onScroll={this.onScroll}>
                             {this.props.coronaDataList.map((data) => {
-                                let className = this.state.currentData.day === data.day ?  "DayArea" : "DayAreaActive";
+                                let className = this.state.currentData.day === data.day ?  "DayAreaActive" : "DayArea";
                                 return (
                                     <div className={className} key={data.day}
                                          onClick={() => this.changeCurrentData(data)}
-                                         onMouseEnter={() => this.changeCurrentData(data)}>
-                                        <div style={{"margin-left": "5px", "margin-right": "5px"}}>{data.day.replace("2020/","")}</div>
+                                         onMouseEnter={(e) => {
+                                             this.changeCurrentData(data);
+                                         }}>
+                                        <div style={{"margin-left": "5px", "margin-right": "5px", "color": "white"}}>{data.day.replace("2020/","")}</div>
                                     </div>
                                 )
                             })}
@@ -192,7 +200,7 @@ class Map extends React.Component {
                 }
                 .HeaderArea {
                   position: absolute;
-                  top: 0px;
+                  top: 10px;
                   left: 10px;
                 }
                 .FooterArea {
@@ -203,21 +211,26 @@ class Map extends React.Component {
                 }
                 .DayNav {
                   width: ${width}px;
-                  background-color: #C0C0C0;
+                  background-color: rgba(52,52,52,.A);
                   display: flex;
-                  flex-direction: row;
                   overflow: scroll;
+                }
+                .DayNav::-webkit-scrollbar {
+                  display: none;
                 }
                 .DayArea {
                   line-height: 50px;
-                  background-color: #AAA;
+                  background-color: rgba(51,51,51,.8);
                   margin-left: 1px;
                   margin-right: 1px;
                 }
-                .DayArea::-webkit-scrollbar {
-                  display: none;
+                .DayBlank {
+                  line-height: 50px;
+                  width: 200px;
+                  background-color: rgba(51,51,51,.8);
                 }
                 .DayAreaActive {
+                  flex-shrink: 1;
                   line-height: 50px;
                   background-color: #BBB;
                   margin-left: 1px;
