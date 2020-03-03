@@ -6,7 +6,7 @@ import prefectures from "../data/prefectures";
 import data from "../data/data";
 
 const width = 700, height = 700, scale = 1200;
-const circlesSize = 30;
+const circlesSize = 15;
 const defaultScale = 1200;
 
 const reducer = (accumulator, currentValue) => accumulator + currentValue;
@@ -111,7 +111,7 @@ class Map extends React.Component {
                     return "0px"
                 }
                 const dd = scale / defaultScale;
-                const size = circlesSize * dd;
+                const size = circlesSize * dd * (1 + count / 100);
                 return size + "px";
             })
             .attr("fill", (d, i) => {
