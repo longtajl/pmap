@@ -153,8 +153,9 @@ class Map extends React.Component {
 
     componentDidMount() {
         this.renderMap();
-        //const scrollWidth = this.footer.current.clientWidth / this.props.coronaDataList.length;
-        //this.footer.current.scrollLeft = scrollWidth * 10;
+        const element = this.footer.current;
+        const maxScrollLeft = element.scrollWidth - element.clientWidth;
+        element.scrollLeft = maxScrollLeft;
     }
 
     render() {
@@ -169,9 +170,10 @@ class Map extends React.Component {
                     <div className="RightArea">
                         <button id="ResetButton">Reset</button>
                     </div>
+                    <div className="LeftArea">
+                    </div>
                     <div className="HeaderArea">
                         <span style={{"font-size": "20px", "color": "white"}}>{this.state.currentData.day} 感染者数: {this.state.totalCount}人</span>
-                        {/*<span>{this.state.currentCountText}</span>*/}
                     </div>
                     <div className="FooterArea" ref={this.footer}>
                         <div className="DayNav">
