@@ -60,8 +60,7 @@ class Map extends React.Component {
     }
 
     d3Projection() {
-        return d3.geoMercator()
-            .center([136, 36.6])
+        return d3.geoMercator().center([136, 36.6])
             .translate([this.state.svgWidth / 2, this.state.svgHeight / 2])
             .scale(scale);
     }
