@@ -164,15 +164,43 @@ class Map extends React.Component {
             totalCount: data.counts.reduce(reducer),
             preferencesCountDesc: this.generatePreferencesCountDesc(data.counts, this.props.preferences)
         }, () => {
-            this.updateRenderMap()
+            this.updateRenderMap();
+            this.scrollToCurrentDate();
         });
     }
 
+    scrollToCurrentDate() {
+        const element = this.footer.current;
+        const scrollBlockWidth = element.scrollWidth / this.props.coronaDataList.length;
+        let scrollLeft = (scrollBlockWidth * this.state.currentIndex) - (element.clientWidth / 2) + (scrollBlockWidth / 2);
+        element.scrollTo({
+            top: 0,
+            left: scrollLeft,
+            behavior: 'smooth'
+        });
+    }
+
+    handleKeyDown(e) {
+        let index = this.state.currentIndex;
+        if (e.keyCode === 37) {
+            index = index - 1;
+        } else if (e.keyCode === 39) {
+            index = index + 1;
+        }
+        if (0 <= index && index < this.props.coronaDataList.length) {
+            const data = this.props.coronaDataList[index];
+            this.changeCurrentData(data, index);
+        }
+    }
+
     componentDidMount() {
+        window.addEventListener('keydown', this.handleKeyDown.bind(this));
+
         this.renderMap();
 
         const element = this.footer.current;
         element.scrollLeft = element.scrollWidth - element.clientWidth;
+
         this.setState({
             preferencesCountDesc: this.generatePreferencesCountDesc(this.state.currentData.counts, this.props.preferences)
         });
@@ -218,7 +246,7 @@ class Map extends React.Component {
                                     <div className={className} key={data.day}
                                          onClick={() => this.changeCurrentData(data, i)}
                                          onMouseEnter={(e) => {
-                                             this.changeCurrentData(data);
+                                             //this.changeCurrentData(data);
                                          }}>
                                         <div style={{
                                             "marginLeft": "5px",
