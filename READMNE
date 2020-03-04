@@ -1,0 +1,11 @@
+
+build coker image
+
+# build
+$ docker build -t xmd/dmap .
+
+# run
+$ docker run -d -p 3333:3000 xmd/dmap:latest
+
+$ stop
+$ docker stop {containerId}

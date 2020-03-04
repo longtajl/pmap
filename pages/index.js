@@ -8,7 +8,7 @@ const linkStyle = {
 export default function Index() {
     return (
         <Layout>
-            <h1>Map</h1>
+            <h1>いろんなMap</h1>
             <Link href="/map">
                 <a style={linkStyle}>コロナ</a>
             </Link>
