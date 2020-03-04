@@ -1,5 +1,5 @@
 
-build coker image
+build docker image
 
 # build
 $ docker build -t xmd/dmap .
