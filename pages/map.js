@@ -1,11 +1,11 @@
 import fetch from "isomorphic-unfetch";
-import {useRouter} from 'next/router'
+import {withRouter} from 'next/router'
 import * as topojson from "topojson-client";
 import * as d3 from "d3";
 import prefectures from "../data/prefectures";
 import data from "../data/data";
 
-const width = 700, height = 700, scale = 1200;
+const scale = 1200;
 const circlesSize = 15;
 const defaultScale = 1200;
 
@@ -15,15 +15,34 @@ class Map extends React.Component {
 
     constructor(props) {
         super(props);
-        const lastIndex = props.coronaDataList.length - 1;
-        const currentData = props.coronaDataList[lastIndex];
+
+        const { router } = props;
+        const {d, w, h} = router.query;
+
+        let lastIndex = props.coronaDataList.length - 1;
+        if (d) {
+            const index = props.coronaDataList.findIndex((data) => data.day.replace(/\//g, "") === d);
+            if (index !== -1) {
+                lastIndex = index;
+            }
+        }
+
+        let width = 400, height = 650;
+        const qWidth = parseInt(w, 10), qHeight = parseInt(h, 10);
+        if (qWidth && qWidth > width) width = qWidth;
+        if (qHeight && qHeight > height) height = qHeight;
+
+        let currentData = props.coronaDataList[lastIndex];
         this.footer = React.createRef();
+
         this.state = {
             currentIndex: lastIndex,
             currentData: currentData,
             mouseOverPrefectureId: -1,
             totalCount: currentData.counts.reduce(reducer),
-            currentCountText: ""
+            svgWidth: width,
+            svgHeight: height,
+            preferencesCountDesc: []
         };
     }
 
@@ -43,7 +62,7 @@ class Map extends React.Component {
     d3Projection() {
         return d3.geoMercator()
             .center([136, 35.6])
-            .translate([width / 2, height / 2])
+            .translate([this.state.svgWidth / 2, this.state.svgHeight / 2])
             .scale(scale);
     }
 
@@ -143,36 +162,35 @@ class Map extends React.Component {
         this.setState({
             currentIndex: i,
             currentData: data,
-            totalCount: data.counts.reduce(reducer)
+            totalCount: data.counts.reduce(reducer),
+            preferencesCountDesc: this.generatePreferencesCountDesc(this.state.currentData.counts, this.props.preferences)
         }, () => {
             this.updateRenderMap()
         });
     }
 
-    onScroll(event) {
-        let element = event.target;
-    }
-
     componentDidMount() {
         this.renderMap();
+
         const element = this.footer.current;
-        const maxScrollLeft = element.scrollWidth - element.clientWidth;
-        element.scrollLeft = maxScrollLeft;
+        element.scrollLeft = element.scrollWidth - element.clientWidth;
+        this.setState({
+            preferencesCountDesc: this.generatePreferencesCountDesc(this.state.currentData.counts, this.props.preferences)
+        });
+    }
+
+    generatePreferencesCountDesc(counts, preferences) {
+        return this.state.currentData.counts
+            .map((data, i) => Object.assign({count: data}, this.props.preferences[i]))
+            .filter(d => d.count > 0).sort((a, b) => b.count - a.count);
     }
 
     render() {
-
-        let preferencesCount = this.state.currentData.counts.map((data, i) => {
-            return [data, this.props.preferences[i]];
-        }).filter(d => d[0] > 0).sort((a, b) => {
-            return b[0] - a[0]
-        });
-
         return (
             <div>
                 <div className="MapContainer">
-                    <svg width={width}
-                         height={height}
+                    <svg width={this.state.svgWidth}
+                         height={this.state.svgHeight}
                          ref="svg"
                          style={{background: '#2A2A2A'}}>
                     </svg>
@@ -181,20 +199,18 @@ class Map extends React.Component {
                     </div>
                     <div className="LeftArea">
                         <div>
-                            {preferencesCount.map((data) => {
-                                let p = data[1], count = data[0];
+                            {this.state.preferencesCountDesc.map((p, i) => {
                                 let color = this.state.mouseOverPrefectureId === p.id ? "red" : "white";
                                 return (
-                                    <div key={p.id} style={{"fontSize": "12px", "color": color}}>{p["name-ja"]} {count}人</div>
+                                    <div key={i} style={{"fontSize": "12px", "color": color}}>{p["name-ja"]} {p.count}人</div>
                                 )
                             })}
                         </div>
                     </div>
                     <div className="HeaderArea">
-                        <span style={{
-                            "fontSize": "20px",
-                            "color": "white"
-                        }}>{this.state.currentData.day} 感染者数: {this.state.totalCount}人</span>
+                        <span style={{ "fontSize": "20px", "color": "white" }}>
+                            {this.state.currentData.day} 感染者数: {this.state.totalCount}人
+                        </span>
                     </div>
                     <div className="FooterArea" ref={this.footer}>
                         <div className="DayNav">
@@ -207,8 +223,8 @@ class Map extends React.Component {
                                              this.changeCurrentData(data);
                                          }}>
                                         <div style={{
-                                            "margin-left": "5px",
-                                            "margin-right": "5px",
+                                            "marginLeft": "5px",
+                                            "marginRight": "5px",
                                             "color": "white"
                                         }}>{data.day.replace("2020/", "")}</div>
                                     </div>
@@ -222,8 +238,8 @@ class Map extends React.Component {
                 .MapContainer {
                   position: relative;
                   background-color: #424949;
-                  width: ${width}px;
-                  height: 700px;
+                  width: ${this.state.svgWidth}px;
+                  height: ${this.state.svgHeight}px;
                 }
                 .RightArea {
                   position: absolute;
@@ -244,13 +260,13 @@ class Map extends React.Component {
                   position: absolute;
                   bottom: 0px;
                   left: 0px;
-                  width: ${width}px;
+                  width: ${this.state.svgWidth}px;
                   white-space: nowrap;
                   overflow-x: auto;
                   -webkit-overflow-scrolling: touch;
                 }
                 .DayNav {
-                  width: ${width}px;
+                  width: ${this.state.svgWidth}px;
                   background-color: rgba(52,52,52,.A);
                   display: flex;
                 }
@@ -285,4 +301,4 @@ class Map extends React.Component {
     }
 }
 
-export default Map;
+export default withRouter(Map);
