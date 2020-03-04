@@ -7,7 +7,7 @@ import data from "../data/data";
 
 const scale = 1200;
 const circlesSize = 15;
-const defaultScale = 1200;
+const defaultScale = 1100;
 
 const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
@@ -27,7 +27,7 @@ class Map extends React.Component {
             }
         }
 
-        let width = 400, height = 650;
+        let width = 420, height = 650;
         const qWidth = parseInt(w, 10), qHeight = parseInt(h, 10);
         if (qWidth && qWidth > width) width = qWidth;
         if (qHeight && qHeight > height) height = qHeight;
@@ -61,7 +61,7 @@ class Map extends React.Component {
 
     d3Projection() {
         return d3.geoMercator()
-            .center([136, 35.6])
+            .center([136, 36.6])
             .translate([this.state.svgWidth / 2, this.state.svgHeight / 2])
             .scale(scale);
     }
@@ -163,7 +163,7 @@ class Map extends React.Component {
             currentIndex: i,
             currentData: data,
             totalCount: data.counts.reduce(reducer),
-            preferencesCountDesc: this.generatePreferencesCountDesc(this.state.currentData.counts, this.props.preferences)
+            preferencesCountDesc: this.generatePreferencesCountDesc(data.counts, this.props.preferences)
         }, () => {
             this.updateRenderMap()
         });
@@ -180,8 +180,7 @@ class Map extends React.Component {
     }
 
     generatePreferencesCountDesc(counts, preferences) {
-        return this.state.currentData.counts
-            .map((data, i) => Object.assign({count: data}, this.props.preferences[i]))
+        return counts.map((data, i) => Object.assign({count: data}, preferences[i]))
             .filter(d => d.count > 0).sort((a, b) => b.count - a.count);
     }
 
@@ -243,8 +242,8 @@ class Map extends React.Component {
                 }
                 .RightArea {
                   position: absolute;
-                  right: 30px;
-                  top: 30px;
+                  right: 20px;
+                  top: 15px;
                 }
                 .LeftArea {
                   position: absolute;
